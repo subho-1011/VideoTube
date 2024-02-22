@@ -239,4 +239,55 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         );
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    /*
+     * data from request body
+     * old password
+     * new password
+     * find the user id in middleware
+     * find the current user in database
+     * password check from user model
+     * if password check success then set new password
+     * save new password to database
+     * return response
+     */
+
+    const { oldPassword, newPassword, confPassword } = req.body;
+    if (!(newPassword === confPassword)) {
+        throw new ApiError(
+            400,
+            "New Password & Confrom Password do not match "
+        );
+    }
+
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+        throw new ApiError(404, "User not found while changing password");
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid password while changing password");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                user: user,
+            },
+            "Password changed successfully"
+        )
+    );
+});
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+};
