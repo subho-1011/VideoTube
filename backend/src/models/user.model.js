@@ -2,6 +2,18 @@ import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
+/*
+    ! User Schema !
+    * username -> String, required, unique, lowercase
+    * email -> String, required, unique, lowercase
+    * fullname -> String, required
+    * password -> String, required
+    * refreshToken -> String
+    * avatar -> String, required (url)
+    * coverImage -> String (url)
+    * watchHistory 
+    * timeStamp -> required
+*/
 const userSchema = new Schema(
     {
         username: {
@@ -52,6 +64,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
 
+    // ? hash the password
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
@@ -60,8 +73,11 @@ userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
+/*
+    * genarate Access Token for the current user
+*/
 userSchema.methods.generateAccessToken = async function () {
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
             email: this.email,
@@ -74,8 +90,13 @@ userSchema.methods.generateAccessToken = async function () {
         }
     );
 };
+
+
+/*
+    * genarate Refresh Token for the current user 
+ */
 userSchema.methods.generateRefreshToken = async function () {
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
         },
