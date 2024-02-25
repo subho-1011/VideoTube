@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary, deleteToCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteImageToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -356,7 +356,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     user.avatar = avatar.url;
     const updatedUser = await user.save({ validateBeforeSave: false });
 
-    await deleteToCloudinary(cloudinaryFilePathToDelete);
+    await deleteImageToCloudinary(cloudinaryFilePathToDelete);
     return res
         .status(200)
         .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
@@ -399,7 +399,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         { new: true }
     ).select("-password -refreshToken");
 
-    await deleteToCloudinary(cloudinaryFilePathToDelete);
+    await deleteImageToCloudinary(cloudinaryFilePathToDelete);
     return res
         .status(200)
         .json(
@@ -419,7 +419,7 @@ const deleteUserCoverImage = asyncHandler(async (req, res) => {
         );
     }
 
-    await deleteToCloudinary(user.coverImage);
+    await deleteImageToCloudinary(user.coverImage);
 
     user.coverImage = null;
     await user.save({ validateBeforeSave: false });
