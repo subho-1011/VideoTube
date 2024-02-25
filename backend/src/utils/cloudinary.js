@@ -27,7 +27,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-const deleteToCloudinary = async (cloudinaryFilePath) => {
+const deleteImageToCloudinary = async (cloudinaryFilePath) => {
     try {
         if (!cloudinaryFilePath) return null;
 
@@ -36,16 +36,47 @@ const deleteToCloudinary = async (cloudinaryFilePath) => {
         // console.log(fileName);
 
         // delete the file from cloudinary
-        return await cloudinary.uploader.destroy(fileName, (err, result) => {
-            if (err) {
-                console.error("Error deleting file:", err);
-            } else {
-                console.log("File deleted successfully:", result);
+        return await cloudinary.uploader.destroy(
+            fileName,
+            { resource_type: "image" },
+            (err, result) => {
+                if (err) {
+                    console.error("Error deleting file:", err);
+                } else {
+                    console.log("File deleted successfully:", result);
+                }
             }
-        });
+        );
+        // return;
     } catch (e) {
         console.log("Error deleting cloudinary file: " + e.message);
     }
 };
 
-export { uploadOnCloudinary, deleteToCloudinary };
+const deleteVideoToCloudinary = async (cloudinaryFilePath) => {
+    try {
+        if (!cloudinaryFilePath) return null;
+
+        const filePath = cloudinaryFilePath.split("/");
+        const fileName = filePath[filePath.length - 1].split(".")[0];
+        // console.log(fileName);
+
+        // delete the file from cloudinary
+        return await cloudinary.uploader.destroy(
+            fileName,
+            { resource_type: "video" },
+            (err, result) => {
+                if (err) {
+                    console.error("Error deleting file:", err);
+                } else {
+                    console.log("File deleted successfully:", result);
+                }
+            }
+        );
+        // return;
+    } catch (e) {
+        console.log("Error deleting cloudinary file: " + e.message);
+    }
+};
+
+export { uploadOnCloudinary, deleteImageToCloudinary, deleteVideoToCloudinary };
