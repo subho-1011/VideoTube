@@ -3,8 +3,20 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary, deleteImageToCloudinary, deleteVideoToCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
+import { ApiError } from "../utils/ApiError.js";
 
-const getAllVideos = asyncHandler(async (req, res) => {});
+const getAllVideos = asyncHandler(async (req, res) => {
+    // TODO: this part complete later
+    // const { page=1, limit=10, query, sortBy, sortType, userId } = req.query
+
+    const videos = await Video.find();
+
+    console.log(videos);
+
+    return res
+     .status(200)
+     .json(new ApiResponse(200, videos, "videos found successfully"));
+});
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body;
