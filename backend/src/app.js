@@ -22,6 +22,7 @@ import userRouter from "./routes/user.routes.js";
 import videoRouter from "./routes/video.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
 import healthCheckRouter from "./routes/healthcheck.routes.js";
+import tweetRouter from "./routes/tweet.routes.js";
 
 // routes declaretion
 // http://localhost:8000/api/v1/users/register
@@ -29,5 +30,6 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/health-check", healthCheckRouter);
+app.use("/api/v1/tweets", tweetRouter);
 
 export { app };
