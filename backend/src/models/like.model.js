@@ -5,22 +5,18 @@ const likeSchema = new Schema(
         likeBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
-            required: true,
         },
         comment: {
             type: Schema.Types.ObjectId,
             ref: "Comment",
-            required: true,
         },
-        followers: {
+        tweet: {
             type: Schema.Types.ObjectId,
-            ref: "follower",
-            required: true,
+            ref: "Tweet",
         },
         video: {
             type: Schema.Types.ObjectId,
             ref: "Video",
-            required: true,
         },
     },
     { timestamps: true }
