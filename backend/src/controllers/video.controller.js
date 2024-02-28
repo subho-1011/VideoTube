@@ -17,16 +17,12 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const videos = await Video.aggregate([
         {
             $match: {
-                isPulished: true,
-                $or: [
-                    { title: { $regex: query, $options: "i" } },
-                    { description: { $regex: query, $options: "i" } },
-                ],
+                isPulished: false,
             },
         },
         {
             $sort: {
-                [sortBy]: sortType,
+                // [sortBy]: sortType,
                 createdAt: -1,
             },
         },
@@ -37,8 +33,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
             $limit: parseInt(limit),
         },
     ]);
-
-    console.log(videos);
 
     return res
         .status(200)

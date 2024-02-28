@@ -15,7 +15,7 @@ const createTweet = asyncHandler(async (req, res) => {
     // create new tweet
     const tweet = await Tweet.create({
         content,
-        user: req.user._id,
+        owner: req.user._id,
     });
     if (!tweet) {
         throw new ApiError(400, "Error creating tweet");
@@ -27,17 +27,17 @@ const createTweet = asyncHandler(async (req, res) => {
     );
 });
 
-// get user tweet
-const getUserTweet = asyncHandler(async (req, res) => {
-    // get userid from params
-    const { userId } = req.params;
-    if (!userId) {
+// get tweet
+const getTweet = asyncHandler(async (req, res) => {
+    // get tweetId from params
+    const { tweetId } = req.params;
+    if (!tweetId) {
         throw new ApiError(400, "User id must be provided");
     }
 
     // get user tweet
     const tweet = await Tweet.findOne({
-        user: userId,
+        _id: tweetId,
     });
     if (!tweet) {
         throw new ApiError(404, "Tweet not found");
@@ -55,6 +55,16 @@ const updateUserTweet = asyncHandler(async (req, res) => {
     const { tweetId } = req.params;
     if (!tweetId && !mongoose.Types.ObjectId.isValid(tweetId)) {
         throw new ApiError(400, "Tweet id not found");
+    }
+
+    const tweet = await Tweet.findById(tweetId);
+    if (!tweet) {
+        throw new ApiError(404, "Tweet not found");
+    }
+
+    // check if user is owner of tweet
+    if (tweet.owner.toString()!== req.user._id.toString()) {
+        throw new ApiError(401, "You are not the owner of this tweet");
     }
 
     // get content from body
@@ -87,6 +97,11 @@ const deleteUserTweet = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Tweet id not found");
     }
 
+    const tweet = await Tweet.findById(tweetId);
+    if (tweet.owner.toString()!== req.user._id.toString()) {
+        throw new ApiError(401, "You are not the owner of this tweet");
+    }
+
     // delete user tweet
     const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
     if (!deletedTweet) {
@@ -99,4 +114,4 @@ const deleteUserTweet = asyncHandler(async (req, res) => {
     );
 });
 
-export { createTweet, getUserTweet, updateUserTweet, deleteUserTweet };
+export { createTweet, getTweet, updateUserTweet, deleteUserTweet };

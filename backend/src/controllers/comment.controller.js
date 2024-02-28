@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Comment } from "../models/comment.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -22,10 +23,10 @@ const getVideoComments = asyncHandler(async (req, res) => {
     }
 
     // create pipeline for comments
-    const videoComments = Comment.aggregate([
+    const videoComments = await Comment.aggregate([
         {
             $match: {
-                videoId: new mongoose.Types.ObjectId(videoId),
+                video: new mongoose.Types.ObjectId(videoId),
             },
         },
         {
@@ -48,7 +49,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 owner: {
-                    $first: $owner,
+                    $arrayElemAt: ["$owner", 0],
                 },
             },
         },
@@ -89,7 +90,7 @@ const addComment = asyncHandler(async (req, res) => {
     }
 
     // create new comment
-    const newComment = new Comment({
+    const newComment = await Comment.create({
         comment: comment,
         video: videoId,
         owner: req.user._id,
@@ -140,7 +141,7 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
     // get comment id from params
     const { commentId } = req.params;
-    if (!commentId &&!mongoose.Types.ObjectId.isValid(commentId)) {
+    if (!commentId && !mongoose.Types.ObjectId.isValid(commentId)) {
         throw new ApiError(400, "invalid comment id");
     }
 
@@ -152,8 +153,8 @@ const deleteComment = asyncHandler(async (req, res) => {
 
     // return deleted comment response
     return res
-       .status(200)
-       .json(
+        .status(200)
+        .json(
             new ApiResponse(200, deletedComment, "comment deleted successfully")
         );
 });

@@ -9,9 +9,10 @@ const tweetSchema = new Schema(
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
     },
     { timestamps: true }
 );
 
-export const Follower = mongoose.model("Tweet", tweetSchema);
+export const Tweet = mongoose.model("Tweet", tweetSchema);

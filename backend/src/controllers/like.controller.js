@@ -1,27 +1,22 @@
 import mongoose from "mongoose";
 import { Like } from "../models/like.model.js";
+import { Tweet } from "../models/tweet.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // toggle video like functionality
-const toggleVideo = asyncHandler(async (req, res) => {
+const toggleVideoLike = asyncHandler(async (req, res) => {
     // get video id from params
     const { videoId } = req.params;
     if (!videoId && !mongoose.Types.ObjectId.isValid(videoId)) {
         throw new ApiError(400, "video id is required");
     }
 
-    // get video from database
-    const video = await Video.findById(videoId);
-    if (!video) {
-        throw new ApiError(404, "video not found");
-    }
-
     // check if user has already liked this video
     const isLiked = await Like.findOne({
-        userId: req.user._id,
-        videoId: video._id,
+        likeBy: req.user._id,
+        video: videoId,
     });
 
     // if user has already liked this video then remove like
@@ -36,8 +31,8 @@ const toggleVideo = asyncHandler(async (req, res) => {
 
     // if user has not liked this video then add like
     const newLike = await Like.create({
-        userId: req.user._id,
-        videoId: video._id,
+        likeBy: req.user._id,
+        video: videoId,
     });
 
     // return new like response
@@ -47,23 +42,17 @@ const toggleVideo = asyncHandler(async (req, res) => {
 });
 
 // toggle comment like functionality
-const toggleComment = asyncHandler(async (req, res) => {
+const toggleCommentLike = asyncHandler(async (req, res) => {
     // get comment id from params
     const { commentId } = req.params;
     if (!commentId && !mongoose.Types.ObjectId.isValid(commentId)) {
         throw new ApiError(400, "comment id is required");
     }
 
-    // get comment from database
-    const comment = await Comment.findById(commentId);
-    if (!comment) {
-        throw new ApiError(404, "comment not found");
-    }
-
     // check if user has already liked this comment
     const isLiked = await Like.findOne({
         likeBy: req.user._id,
-        comment: comment._id,
+        comment: commentId,
     });
 
     // if user has already liked this comment then remove like
@@ -83,7 +72,7 @@ const toggleComment = asyncHandler(async (req, res) => {
     // if user has not liked this comment then add like
     const newLike = await Like.create({
         likeBy: req.user._id,
-        comment: comment._id,
+        comment: commentId,
     });
 
     // return new like response
@@ -93,7 +82,7 @@ const toggleComment = asyncHandler(async (req, res) => {
 });
 
 // toggle tweet like functionality
-const toggleTweet = asyncHandler(async (req, res) => {
+const toggleTweetLike = asyncHandler(async (req, res) => {
     // get tweet id from params
     const { tweetId } = req.params;
     if (!tweetId && !mongoose.Types.ObjectId.isValid(tweetId)) {
@@ -172,8 +161,14 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     ]);
 
     return res
-     .status(200)
-     .json(new ApiResponse(200, likedVideo, "liked videos fetched successfully"));
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                likedVideo,
+                "liked videos fetched successfully"
+            )
+        );
 });
 
-export { toggleVideo, toggleComment, toggleTweet, getLikedVideos };
+export { toggleVideoLike, toggleCommentLike, toggleTweetLike, getLikedVideos };
