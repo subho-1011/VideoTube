@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { 
     createTweet,
-    getUserTweet,
+    getTweet,
     updateUserTweet,
     deleteUserTweet
 } from "../controllers/tweet.controller.js";
@@ -12,9 +12,9 @@ router.use(verifyJWT);
 
 router.route("/").post(createTweet);
 
-router.route("/user/:userId").get(getUserTweet);
+router.route("/:tweetId").get(getTweet);
 
-router.route("/:tweetId").put(updateUserTweet);
+router.route("/:tweetId").patch(updateUserTweet);
 
 router.route("/:tweetId").delete(deleteUserTweet);
 

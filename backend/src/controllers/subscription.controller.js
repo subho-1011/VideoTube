@@ -5,26 +5,20 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+// =================================================================
 const toggleSubscription = asyncHandler(async (req, res) => {
-    // get channel id from params
     const { channelId } = req.params;
-    // console.log(channelId);
 
-    // find channel in database
     const channel = await User.findById(channelId);
     if (!channel) {
         throw new ApiError(400, "Channel not found while toggling channel ");
     }
-    // console.log(channel);
 
-    // check the user subscription status
     const existingSubscription = await Subscription.findOne({
         subscriber: req.user._id,
         channel: channelId,
     });
-    // console.log(existingSubscription);
 
-    // if channel is already subscribed then subscribe to channel
     if (existingSubscription) {
         await Subscription.findOneAndDelete({
             subscriber: req.user._id,
@@ -41,7 +35,6 @@ const toggleSubscription = asyncHandler(async (req, res) => {
             );
     }
 
-    // if channel is not subscribed then subscribe to channel
     const newSubscription = new Subscription({
         subscriber: req.user._id,
         channel: channelId,
@@ -59,7 +52,8 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         );
 });
 
-// list of subscribers for this channel
+// =================================================================
+
 const getUserChannelSubcribers = asyncHandler(async (req, res) => {
     // get channel from params
     const { channelId } = req.params;
@@ -104,13 +98,11 @@ const getUserChannelSubcribers = asyncHandler(async (req, res) => {
             },
         },
         {
-            $project: {
-                _id: 0,
-                subscribers: 1,
-            },
+            $replaceRoot: {
+                newRoot: "$subscribers",
+            }
         },
     ]);
-    console.log(channelSubscribers);
 
     return res
         .status(200)
@@ -123,7 +115,8 @@ const getUserChannelSubcribers = asyncHandler(async (req, res) => {
         );
 });
 
-// list of channels list which user has subscribed
+// =================================================================
+
 const getSubscribedChannels = asyncHandler(async (req, res) => {
     const { subscriberId } = req.params;
 
@@ -132,11 +125,13 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User not found in database...");
     }
 
-    const subscribedToChannel = await Subscription.aggregate([
+    const subscribedToChannels = await Subscription.aggregate([
         {
             $match: {
                 subscriber: new mongoose.Types.ObjectId(subscriberId),
             },
+        },
+        {
             $lookup: {
                 from: "users",
                 localField: "channel",
@@ -152,21 +147,31 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
                     },
                 ],
             },
-            $project: {
-                subscribedChannels: 1,
+        },
+        {
+            $addFields: {
+                subscribedChannels: {
+                    $arrayElemAt: ["$subscribedChannels", 0],
+                },
             },
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$subscribedChannels",
+            }
         },
     ]);
 
     return res
         .status(200)
-        .status(
+        .json(
             new ApiResponse(
                 200,
-                subscribedToChannel,
+                subscribedToChannels,
                 "Subscribed to channel finished"
             )
         );
 });
+
 
 export { toggleSubscription, getUserChannelSubcribers, getSubscribedChannels };
