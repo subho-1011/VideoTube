@@ -21,6 +21,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
             },
         },
         {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+            },
+        },
+        {
+            $addFields: {
+                owner: {
+                    $arrayElemAt: ["$owner", 0],
+                },
+            },
+        },
+        {
             $sort: {
                 // [sortBy]: sortType,
                 createdAt: -1,
@@ -72,7 +87,38 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    const findVideo = await Video.findById(videoId);
+    const findVideo = await Video.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(videoId),
+            },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            fullName: 1,
+                            username: 1,
+                            avatar: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                owner: {
+                    $arrayElemAt: ["$owner", 0],
+                },
+            },
+        },
+    ]);
+    console.log(findVideo);
     if (!findVideo) {
         throw new ApiError(404, "video not found");
     }
