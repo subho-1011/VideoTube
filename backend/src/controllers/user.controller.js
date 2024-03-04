@@ -1,10 +1,14 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary, deleteImageToCloudinary } from "../utils/cloudinary.js";
+import {
+    uploadOnCloudinary,
+    deleteImageToCloudinary,
+} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
+// =================================================================
 const registerUser = asyncHandler(async (req, res) => {
     /*
      * Get user information from frontend server
@@ -86,6 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, createdUser, "Successfully registered"));
 });
 
+// =================================================================
 const loginUser = asyncHandler(async (req, res) => {
     /*
      * data from request body
@@ -139,18 +144,11 @@ const loginUser = asyncHandler(async (req, res) => {
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
-            new ApiResponse(
-                200,
-                {
-                    user: loggedInUser,
-                    accessToken,
-                    refreshToken,
-                },
-                "User logged in successfully"
-            )
+            new ApiResponse(200, loggedInUser, "User logged in successfully")
         );
 });
 
+// =================================================================
 const logoutUser = asyncHandler(async (req, res) => {
     /*
      * delete the refresh token from the database
@@ -183,6 +181,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged out"));
 });
 
+// =================================================================
 const refreshAccessToken = asyncHandler(async (req, res) => {
     /*
      * get the refresh token from the cookies
@@ -242,6 +241,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         );
 });
 
+// =================================================================
+
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     /*
      * data from request body
@@ -287,6 +288,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     );
 });
 
+// =================================================================
+
 const getCurrentUser = asyncHandler(async (req, res) => {
     /*
      * get the user information from the middleware
@@ -322,12 +325,14 @@ const updateUserDetails = asyncHandler(async (req, res) => {
             },
         },
         { new: true }
-    ).select("-password");
+    ).select("-password -refreshToken");
 
     return res
         .status(200)
         .json(new ApiResponse(200, user, "User details updated successfully"));
 });
+
+// =================================================================
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
     /*
@@ -353,8 +358,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     }
     const cloudinaryFilePathToDelete = user.avatar;
 
-    user.avatar = avatar.url;
-    const updatedUser = await user.save({ validateBeforeSave: false });
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                avatar: avatar.url,
+            },
+        },
+        { new: true }
+    ).select("-password -refreshToken");
 
     await deleteImageToCloudinary(cloudinaryFilePathToDelete);
     return res
@@ -362,14 +374,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
 });
 
-const updateUserCoverImage = asyncHandler(async (req, res) => {
-    /*
-     * get user cover image
-     * upload cover image to cloudinary server
-     * update cover image
-     * return response
-     */
+// =================================================================
 
+const updateUserCoverImage = asyncHandler(async (req, res) => {
     const coverImagePath = req.file?.path;
     if (!coverImagePath) {
         throw new ApiError(400, "Cover image required for update");
@@ -407,6 +414,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         );
 });
 
+// =================================================================
+
 const deleteUserCoverImage = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user?._id);
     if (!user) {
@@ -428,6 +437,8 @@ const deleteUserCoverImage = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, "Cover image deleted successfully"));
 });
+
+// =================================================================
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     /*
@@ -516,6 +527,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         );
 });
 
+// =================================================================
+
 const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
@@ -569,6 +582,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             )
         );
 });
+
+// =================================================================
 
 export {
     registerUser,

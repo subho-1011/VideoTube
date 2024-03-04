@@ -11,17 +11,13 @@ const uploadOnCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null;
 
-        // upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto",
         });
 
-        // file has been successfully uploaded
-        // console.log("file successfully uploaded in cloudinary", response.url);
         fs.unlinkSync(localFilePath);
         return response;
     } catch (error) {
-        // remove the local file
         fs.unlinkSync(localFilePath);
         return null;
     }
@@ -33,21 +29,16 @@ const deleteImageToCloudinary = async (cloudinaryFilePath) => {
 
         const filePath = cloudinaryFilePath.split("/");
         const fileName = filePath[filePath.length - 1].split(".")[0];
-        // console.log(fileName);
 
-        // delete the file from cloudinary
         return await cloudinary.uploader.destroy(
             fileName,
             { resource_type: "image" },
-            (err, result) => {
+            (err, _) => {
                 if (err) {
                     console.error("Error deleting file:", err);
-                } else {
-                    console.log("File deleted successfully:", result);
                 }
             }
         );
-        // return;
     } catch (e) {
         console.log("Error deleting cloudinary file: " + e.message);
     }
@@ -59,21 +50,16 @@ const deleteVideoToCloudinary = async (cloudinaryFilePath) => {
 
         const filePath = cloudinaryFilePath.split("/");
         const fileName = filePath[filePath.length - 1].split(".")[0];
-        // console.log(fileName);
 
-        // delete the file from cloudinary
         return await cloudinary.uploader.destroy(
             fileName,
             { resource_type: "video" },
-            (err, result) => {
+            (err, _) => {
                 if (err) {
                     console.error("Error deleting file:", err);
-                } else {
-                    console.log("File deleted successfully:", result);
                 }
             }
         );
-        // return;
     } catch (e) {
         console.log("Error deleting cloudinary file: " + e.message);
     }
