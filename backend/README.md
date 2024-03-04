@@ -21,7 +21,7 @@ The VideoTube Backend is built with Node.js and Express.js, utilizing various de
 #### 1. Clone the repository to your local machine.
 
 ```
-git clone https://github.com/yourusername/backend.git
+git clone https://github.com/subho-1011/VideoTube.git
 ```
 
 #### 2. Goto backend directory
